@@ -2,31 +2,47 @@
 
 const Benchmark = require('benchmark');
 
+var pug_encode_html_rules = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;'
+};
+var pug_match_html = /[&<>"]/g;
+
+function pug_encode_char(c) {
+  return pug_encode_html_rules[c] || c;
+}
+
 function pug_escape_new(_html){
   var html = '' + _html;
-  let regexResult = -1
+  let escapeIndex = -1
   const index1 = html.indexOf('"');
   const index2 = html.indexOf('&');
   const index3 = html.indexOf('<');
   const index4 = html.indexOf('>');
 
   if (index1 > -1) {
-    regexResult = index1
+    escapeIndex = index1
   }
-  if (index2 > -1 && (index2 < regexResult || regexResult === -1)) {
-    regexResult = index2
+  if (index2 > -1 && (index2 < escapeIndex || escapeIndex === -1)) {
+    escapeIndex = index2
   }
-  if (index3 > -1 && (index3 < regexResult || regexResult === -1)) {
-    regexResult = index3
+  if (index3 > -1 && (index3 < escapeIndex || escapeIndex === -1)) {
+    escapeIndex = index3
   }
-  if (index4 > -1 && (index4 < regexResult || regexResult === -1)) {
-    regexResult = index4
+  if (index4 > -1 && (index4 < escapeIndex || escapeIndex === -1)) {
+    escapeIndex = index4
   }
-  if (regexResult === -1 ) return _html;
+  if (escapeIndex === -1 ) return _html;
+
+  if (escapeIndex < html.length / 2) {
+    return html.replace(pug_match_html, pug_encode_char);
+  }
 
   var result = '';
   var i, lastIndex, escape;
-  for (i = regexResult, lastIndex = 0; i < html.length; i++) {
+  for (i = escapeIndex, lastIndex = 0; i < html.length; i++) {
     switch (html.charCodeAt(i)) {
       case 34: escape = '&quot;'; break;
       case 38: escape = '&amp;'; break;
